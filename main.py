@@ -57,6 +57,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
+<<<<<<< HEAD
 
 # CORS configuration - más flexible
 import os
@@ -66,6 +67,18 @@ ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:4321").split(",
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS if ALLOWED_ORIGINS[0] != "*" else ["*"],
+=======
+# CORS for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://epigrafia.vercel.app",      # Tu dominio de producción en Vercel
+        "https://*.vercel.app",                 # Todos los deployments de preview
+        "http://localhost:3000",                 # Next.js local
+        "http://localhost:5173",                 # Vite local
+        "http://localhost:5174",                 # Vite alternativo
+    ],
+>>>>>>> 44c191c993dc1bfe66f85e0975c3e2441120e3f6
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
