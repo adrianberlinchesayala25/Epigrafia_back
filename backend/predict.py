@@ -1,11 +1,10 @@
 """
 🧠 EpigrafIA Predictor
 ======================
-Audio prediction module for language and accent detection
+Audio prediction module for language detection
 
 Uses trained Keras models to predict:
 - Language (Español, Inglés, Francés, Alemán)
-- Accent (regional variants for each language)
 """
 
 import io
@@ -47,11 +46,10 @@ def _load_librosa():
 
 class AudioPredictor:
     """
-    Audio prediction class for language and accent detection
+    Audio prediction class for language detection
     
     Attributes:
         language_model: Keras model for language detection
-        accent_model: Keras model for accent detection
         models_loaded: Whether models are successfully loaded
     """
     
@@ -65,18 +63,15 @@ class AudioPredictor:
     
     def __init__(
         self,
-        language_model_path: Optional[Union[str, Path]] = None,
-        accent_model_path: Optional[Union[str, Path]] = None
+        language_model_path: Optional[Union[str, Path]] = None
     ):
         """
         Initialize predictor with model paths
         
         Args:
             language_model_path: Path to language detection model (.keras or .h5)
-            accent_model_path: Path to accent detection model (.keras or .h5)
         """
         self.language_model = None
-        self.accent_model = None
         self.models_loaded = False
         
         # Load TensorFlow
@@ -85,10 +80,8 @@ class AudioPredictor:
         # Load models if paths provided
         if language_model_path:
             self.load_language_model(language_model_path)
-        if accent_model_path:
-            self.load_accent_model(accent_model_path)
         
-        # Models are loaded if at least language model exists
+        # Models are loaded if language model exists
         self.models_loaded = self.language_model is not None
     
     def load_language_model(self, model_path: Union[str, Path]) -> None:
@@ -101,17 +94,6 @@ class AudioPredictor:
         self.language_model = tf.keras.models.load_model(str(path))
         logger.info(f"   Input shape: {self.language_model.input_shape}")
         logger.info(f"   Output shape: {self.language_model.output_shape}")
-    
-    def load_accent_model(self, model_path: Union[str, Path]) -> None:
-        """Load accent detection model"""
-        path = Path(model_path)
-        if not path.exists():
-            raise FileNotFoundError(f"Accent model not found: {path}")
-        
-        logger.info(f"📥 Loading accent model from {path}")
-        self.accent_model = tf.keras.models.load_model(str(path))
-        logger.info(f"   Input shape: {self.accent_model.input_shape}")
-        logger.info(f"   Output shape: {self.accent_model.output_shape}")
     
     def extract_features(self, audio_data: bytes) -> np.ndarray:
         """
@@ -253,13 +235,13 @@ class AudioPredictor:
     
     def predict(self, audio_data: bytes) -> Dict[str, Any]:
         """
-        Run full prediction pipeline on audio data
+        Run language prediction on audio data
         
         Args:
             audio_data: Raw audio bytes
             
         Returns:
-            Dictionary with language and accent predictions
+            Dictionary with language prediction
         """
         if self.language_model is None:
             raise RuntimeError("Language model not loaded")
@@ -274,79 +256,22 @@ class AudioPredictor:
         if not np.isclose(language_probs.sum(), 1.0, atol=0.01):
             language_probs = tf.nn.softmax(language_probs).numpy()
         
-        # Log detailed probabilities for debugging
-
-        logger.info(f"🎯 Prediction probabilities:")
-        for i, (name, prob) in enumerate(zip(lang_names, language_probs)):
-            marker = "👈" if i == np.argmax(language_probs) else ""
-            logger.info(f"   {name}: {prob*100:.1f}% {marker}")
-        
         result = {
             'language_probabilities': language_probs.tolist(),
             'language_prediction': int(np.argmax(language_probs)),
             'language_confidence': float(np.max(language_probs))
         }
         
-        # Run accent prediction if model available
-        if self.accent_model is not None:
-            accent_probs = self.accent_model.predict(features, verbose=0)[0]
-            if not np.isclose(accent_probs.sum(), 1.0, atol=0.01):
-                accent_probs = tf.nn.softmax(accent_probs).numpy()
-            
-            result.update({
-                'accent_probabilities': accent_probs.tolist(),
-                'accent_prediction': int(np.argmax(accent_probs)),
-                'accent_confidence': float(np.max(accent_probs))
-            })
-        else:
-            result.update({
-                'accent_probabilities': None,
-                'accent_prediction': None,
-                'accent_confidence': None
-            })
-        
         return result
     
     def predict_language(self, audio_data: bytes) -> Dict[str, Any]:
         """Predict only language"""
-        if self.language_model is None:
-            raise RuntimeError("Language model not loaded")
-        
-        features = self.extract_features(audio_data)
-        probs = self.language_model.predict(features, verbose=0)[0]
-        
-        if not np.isclose(probs.sum(), 1.0, atol=0.01):
-            probs = tf.nn.softmax(probs).numpy()
-        
-        return {
-            'probabilities': probs,
-            'prediction': int(np.argmax(probs)),
-            'confidence': float(np.max(probs))
-        }
-    
-    def predict_accent(self, audio_data: bytes) -> Dict[str, Any]:
-        """Predict only accent"""
-        if self.accent_model is None:
-            raise RuntimeError("Accent model not loaded")
-        
-        features = self.extract_features(audio_data)
-        probs = self.accent_model.predict(features, verbose=0)[0]
-        
-        if not np.isclose(probs.sum(), 1.0, atol=0.01):
-            probs = tf.nn.softmax(probs).numpy()
-        
-        return {
-            'probabilities': probs,
-            'prediction': int(np.argmax(probs)),
-            'confidence': float(np.max(probs))
-        }
+        return self.predict(audio_data)
     
     def cleanup(self):
         """Release model resources"""
         if self.language_model:
             del self.language_model
-        if self.accent_model:
-            del self.accent_model
         self.models_loaded = False
         
         # Clear TF session

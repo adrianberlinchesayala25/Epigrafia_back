@@ -1,7 +1,7 @@
 ﻿"""
 EpigrafIA Backend - FastAPI Server
 =====================================
-API para deteccion de idioma y acento usando Deep Learning
+API para deteccion de idioma usando Deep Learning
 
 Endpoints:
 - POST /api/analyze - Analiza audio y devuelve predicciones
@@ -41,16 +41,9 @@ BASE_DIR = Path(__file__).resolve().parent
 MODELS_DIR = BASE_DIR / "models"
 
 language_model_path = MODELS_DIR / "language_model.keras"
-accent_model_path = MODELS_DIR / "accent_model.keras"
-if not accent_model_path.exists():
-    accent_model_path = None
 
 # Labels for predictions
-LANGUAGE_LABELS = ['EspaÃ±ol', 'InglÃ©s', 'FrancÃ©s', 'AlemÃ¡n']
-ACCENT_LABELS = [
-    'EspaÃ±a', 'MÃ©xico', 'UK', 'USA',
-    'Francia', 'Quebec', 'Alemania', 'Austria'
-]
+LANGUAGE_LABELS = ['Español', 'Inglés', 'Francés', 'Alemán']
 
 # ============================================
 # FastAPI App
@@ -58,7 +51,7 @@ ACCENT_LABELS = [
 
 app = FastAPI(
     title="EpigrafIA API",
-    description="API de detecciÃ³n de idioma y acento con Deep Learning",
+    description="API de detección de idioma con Deep Learning",
     version="1.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc"
@@ -67,7 +60,7 @@ app = FastAPI(
 # CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producciÃ³n, especificar dominios
+    allow_origins=["*"],  # En producción, especificar dominios
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -88,14 +81,10 @@ async def startup_event():
     logger.info("🚀 Starting EpigrafIA API...")
 
     language_model_path = MODELS_DIR / "language_model.keras"
-    accent_model_path = MODELS_DIR / "accent_model.keras"
-    if not accent_model_path.exists():
-        accent_model_path = None
 
     try:
         predictor = AudioPredictor(
-            language_model_path=language_model_path,
-            accent_model_path=accent_model_path
+            language_model_path=language_model_path
         )
         logger.info("✅ Models loaded successfully!")
 
@@ -111,7 +100,7 @@ async def shutdown_event():
     global predictor
     if predictor:
         predictor.cleanup()
-    logger.info("ðŸ‘‹ EpigrafIA API shutting down...")
+    logger.info("👋 EpigrafIA API shutting down...")
 
 
 # ============================================
@@ -155,16 +144,14 @@ async def models_status():
     return {
         "loaded": predictor.models_loaded,
         "language_model": predictor.language_model is not None,
-        "accent_model": predictor.accent_model is not None,
-        "language_labels": LANGUAGE_LABELS,
-        "accent_labels": ACCENT_LABELS
+        "language_labels": LANGUAGE_LABELS
     }
 
 
 @app.post("/api/analyze")
 async def analyze_audio(audio: UploadFile = File(...)):
     """
-    Analyze audio file and return language/accent predictions
+    Analyze audio file and return language predictions
     
     Accepts: WAV, MP3, WebM, OGG audio files
     Returns: JSON with predictions and probabilities
@@ -195,7 +182,7 @@ async def analyze_audio(audio: UploadFile = File(...)):
         if len(audio_data) == 0:
             raise HTTPException(status_code=400, detail="Empty audio file")
         
-        logger.info(f"ðŸ“¥ Received audio: {audio.filename} ({len(audio_data)} bytes)")
+        logger.info(f"📥 Received audio: {audio.filename} ({len(audio_data)} bytes)")
         
         # Run prediction
         result = predictor.predict(audio_data)
@@ -227,26 +214,10 @@ async def analyze_audio(audio: UploadFile = File(...)):
             "accent_confidence": 0.0
         }
         
-        # Add accent if available
-        accent_probs_raw = result.get('accent_probabilities')
-        if accent_probs_raw is not None:
-            accent_probs = np.array(accent_probs_raw)
-            accent_idx = int(accent_probs.argmax())
-            response["accent"] = {
-                "detected": ACCENT_LABELS[accent_idx] if accent_idx < len(ACCENT_LABELS) else "Desconocido",
-                "confidence": float(accent_probs.max()),
-                "probabilities": {
-                    label: float(prob) 
-                    for label, prob in zip(ACCENT_LABELS, accent_probs)
-                }
-            }
-            response["accent_prediction"] = accent_idx
-            response["accent_confidence"] = float(accent_probs.max())
-        
         # Log all probabilities for debugging
         probs_str = " | ".join([f"{LANGUAGE_LABELS[i]}: {language_probs[i]*100:.1f}%" for i in range(len(LANGUAGE_LABELS))])
-        logger.info(f"ðŸ“Š Probabilities: {probs_str}")
-        logger.info(f"âœ… Prediction: {response['language']['detected']} ({response['language']['confidence']*100:.1f}%)")
+        logger.info(f"📊 Probabilities: {probs_str}")
+        logger.info(f"✅ Prediction: {response['language']['detected']} ({response['language']['confidence']*100:.1f}%)")
         
         return JSONResponse(content=response)
         
