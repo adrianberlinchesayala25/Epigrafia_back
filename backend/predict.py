@@ -126,7 +126,7 @@ class AudioPredictor:
         _load_librosa()
         
         # Detect if WebM by checking magic bytes
-        is_webm = audio_data[:4] == b'\x1a\x45\xdf\xa3'
+is_webm = False
         suffix = '.webm' if is_webm else '.wav'
         
         # Write original audio to temp file
@@ -275,7 +275,7 @@ class AudioPredictor:
             language_probs = tf.nn.softmax(language_probs).numpy()
         
         # Log detailed probabilities for debugging
-        lang_names = ['Español', 'Inglés', 'Francés', 'Alemán']
+
         logger.info(f"🎯 Prediction probabilities:")
         for i, (name, prob) in enumerate(zip(lang_names, language_probs)):
             marker = "👈" if i == np.argmax(language_probs) else ""
@@ -360,28 +360,3 @@ class AudioPredictor:
 # Standalone Test
 # ============================================
 
-if __name__ == "__main__":
-    import sys
-    
-    logging.basicConfig(level=logging.INFO)
-    
-    # Test with a sample audio file
-    if len(sys.argv) > 1:
-        audio_path = sys.argv[1]
-        
-        predictor = AudioPredictor(
-            language_model_path="outputs/models_trained/language_model.keras",
-            accent_model_path="outputs/models_trained/accent_model.keras"
-        )
-        
-        with open(audio_path, 'rb') as f:
-            audio_data = f.read()
-        
-        result = predictor.predict(audio_data)
-        
-        print("\n📊 Prediction Results:")
-        print(f"   Language: {result['language_prediction']} ({result['language_confidence']:.2%})")
-        print(f"   Accent: {result['accent_prediction']} ({result['accent_confidence']:.2%})")
-        
-    else:
-        print("Usage: python predict.py <audio_file>")
