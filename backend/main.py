@@ -79,36 +79,26 @@ predictor: Optional[AudioPredictor] = None
 
 @app.on_event("startup")
 async def startup_event():
-    """Load models on startup"""
     global predictor
-    
-    logger.info("ðŸš€ Starting EpigrafIA API...")
-    
-    # Try to find the best model first, then fall back to regular
-  language_model_path = MODELS_DIR / "language_model.keras"
-    
-accent_model_path = MODELS_DIR / "accent_model.keras"
-if not accent_model_path.exists():
-    accent_model_path = None
-    predictor = AudioPredictor(
-    language_model_path=language_model_path,
-    accent_model_path=accent_model_path
-)
+
+    logger.info("🚀 Starting EpigrafIA API...")
+
+    language_model_path = MODELS_DIR / "language_model.keras"
+    accent_model_path = MODELS_DIR / "accent_model.keras"
+    if not accent_model_path.exists():
+        accent_model_path = None
 
     try:
         predictor = AudioPredictor(
             language_model_path=language_model_path,
-            accent_model_path=accent_model_path if accent_model_path.exists() else None
+            accent_model_path=accent_model_path
         )
-        logger.info("âœ… Models loaded successfully!")
-        
-    except FileNotFoundError as e:
-        logger.warning(f"âš ï¸ Models not found: {e}")
-        logger.warning("   The API will start but predictions won't work.")
-        logger.warning("   Train the models first using the notebooks.")
-        
+        logger.info("✅ Models loaded successfully!")
+
     except Exception as e:
-        logger.error(f"âŒ Error loading models: {e}")
+        logger.error(f"❌ Error loading models: {e}")
+        predictor = None
+
 
 
 @app.on_event("shutdown")
