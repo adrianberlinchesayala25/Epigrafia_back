@@ -6,7 +6,8 @@ API para deteccion de idioma usando Deep Learning
 Endpoints:
 - POST /api/analyze - Analiza audio y devuelve predicciones
 - GET /api/health - Estado del servidor
-- GET /api/models/status - Estado de los modelos cargados
+- GET /api/models/status - Estado de los modelos cargados 
+- GET /api/docs - Documentación de la API
 """
 
 import os
