@@ -126,7 +126,7 @@ class AudioPredictor:
         _load_librosa()
         
         # Detect if WebM by checking magic bytes
-is_webm = False
+        is_webm = False
         suffix = '.webm' if is_webm else '.wav'
         
         # Write original audio to temp file
