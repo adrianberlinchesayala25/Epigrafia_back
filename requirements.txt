@@ -1,7 +1,18 @@
-fastapi==0.108.0
-uvicorn[standard]==0.25.0
-tensorflow==2.20.0
-librosa==0.10.2
-numpy==1.26.4
+﻿# EpigrafIA Backend Requirements
+# Python 3.10+ required
+
+# Web Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
 python-multipart==0.0.6
+
+# ML/Audio Processing
+tensorflow==2.15.0
+keras==3.0.0
+numpy==1.26.3
+librosa==0.10.1
 soundfile==0.12.1
+audioread==3.0.1
+
+# HTTP client (for health checks)
+httpx==0.26.0
