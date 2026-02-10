@@ -7,9 +7,8 @@ uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 
 # ML/Audio Processing  
-tensorflow==2.15.0
-# keras viene incluido con tensorflow 2.15
-numpy==1.26.3
+tensorflow==2.16.1
+numpy<2.0
 librosa==0.10.1
 soundfile==0.12.1
 audioread==3.0.1
