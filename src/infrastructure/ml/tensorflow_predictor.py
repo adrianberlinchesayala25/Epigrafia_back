@@ -76,6 +76,11 @@ class TensorFlowPredictorService(IPredictorService):
         probs = model.predict(features.features, verbose=0)[0]
         probs = ensure_probability_distribution(probs)
 
+        # Keep language priors balanced: all classes get the same weight.
+        class_weights = np.ones(len(labels), dtype=np.float32)
+        probs = probs * class_weights
+        probs = probs / (np.sum(probs) + 1e-8)
+
         # Log detailed probabilities
         logger.info(f"🎯 Language prediction probabilities:")
         for i, (label, prob) in enumerate(zip(labels, probs)):
