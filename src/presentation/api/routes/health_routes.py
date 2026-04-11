@@ -1,30 +1,27 @@
 """FastAPI routes for health check endpoints."""
-from fastapi import APIRouter, Depends
-from dependency_injector.wiring import inject, Provide
+from fastapi import APIRouter, Request
 
-from ....di.containers import Container
 from ..controllers.health_controller import HealthController
 
 router = APIRouter(prefix="/api", tags=["health"])
 
 
 @router.get("/health")
-@inject
 async def health_check(
-    controller: HealthController = Depends(Provide[Container.health_controller])
+    request: Request,
 ):
     """
     Health check endpoint.
 
     Returns API status and whether models are loaded.
     """
+    controller: HealthController = request.app.state.container.health_controller()
     return await controller.check_health()
 
 
 @router.get("/models/status")
-@inject
 async def models_status(
-    controller: HealthController = Depends(Provide[Container.health_controller])
+    request: Request,
 ):
     """
     Model status endpoint.
@@ -32,4 +29,5 @@ async def models_status(
     Returns detailed information about which models are loaded
     and available labels for each model.
     """
+    controller: HealthController = request.app.state.container.health_controller()
     return await controller.get_models_status()

@@ -68,6 +68,9 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
+# Expose DI container through app state to avoid runtime wiring issues.
+app.state.container = container
+
 # CORS for frontend
 app.add_middleware(
     CORSMiddleware,
