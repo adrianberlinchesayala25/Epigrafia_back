@@ -1,0 +1,43 @@
+models:
+  base_directory: "models"
+
+  language:
+    model_file: "language/language_model_best.keras"
+    labels:
+      - "Español"
+      - "Inglés"
+      - "Francés"
+      - "Alemán"
+
+  spoofing:
+    model_file: "spoofing/spoofing_best.keras"
+    labels:
+      - "Humano"
+      - "Artificial"
+
+audio_processing:
+  sample_rate: 16000
+  duration_seconds: 3
+  normalization:
+    target_peak: 0.8
+    target_rms: 0.08
+    max_rms_factor: 3.0
+
+  feature_extraction:
+    standard:
+      n_mfcc: 40
+      n_mels: 128
+      hop_length: 512
+      n_fft: 2048
+
+    spoofing:
+      n_mfcc: 40
+      max_length: 400
+      hop_length: 512
+      n_fft: 2048
+
+api:
+  version: "2.0.0"
+  title: "EpigrafIA API"
+  cors_origins:
+    - "*"
