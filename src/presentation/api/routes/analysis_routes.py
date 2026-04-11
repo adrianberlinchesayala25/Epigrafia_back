@@ -2,6 +2,7 @@
 from fastapi import APIRouter, File, UploadFile, Depends
 from dependency_injector.wiring import inject, Provide
 
+from ....di.containers import Container
 from ..controllers.analysis_controller import AnalysisController
 
 router = APIRouter(prefix="/api", tags=["analysis"])
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/api", tags=["analysis"])
 @inject
 async def analyze_audio(
     audio: UploadFile = File(...),
-    controller: AnalysisController = Depends(Provide["controllers.analysis"])
+    controller: AnalysisController = Depends(Provide[Container.analysis_controller])
 ):
     """
     Analyze audio file for language and spoofing detection.

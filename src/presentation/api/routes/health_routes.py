@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends
 from dependency_injector.wiring import inject, Provide
 
+from ....di.containers import Container
 from ..controllers.health_controller import HealthController
 
 router = APIRouter(prefix="/api", tags=["health"])
@@ -10,7 +11,7 @@ router = APIRouter(prefix="/api", tags=["health"])
 @router.get("/health")
 @inject
 async def health_check(
-    controller: HealthController = Depends(Provide["controllers.health"])
+    controller: HealthController = Depends(Provide[Container.health_controller])
 ):
     """
     Health check endpoint.
@@ -23,7 +24,7 @@ async def health_check(
 @router.get("/models/status")
 @inject
 async def models_status(
-    controller: HealthController = Depends(Provide["controllers.health"])
+    controller: HealthController = Depends(Provide[Container.health_controller])
 ):
     """
     Model status endpoint.
