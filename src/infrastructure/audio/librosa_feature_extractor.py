@@ -17,6 +17,7 @@ from ...audio_processing.infrastructure.mfcc_feature_builders import (
     build_language_features,
     build_spoofing_features,
 )
+from ...audio_processing.infrastructure.speech_windowing import select_speech_window
 
 logger = logging.getLogger(__name__)
 
@@ -93,6 +94,9 @@ class LibrosaFeatureExtractor(IFeatureExtractor):
 
             if audio_rms < 0.001:
                 logger.warning(f"   ⚠️ Audio appears to be very quiet (RMS={audio_rms:.6f})")
+
+            # Align language analysis to speech onset (mobile users often start speaking late).
+            y = select_speech_window(y, self._settings.sample_rate, logger)
 
             # Normalize audio (two-stage normalization)
             y = normalize_standard_audio(y, logger)
